@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+model Ingredient {
+  id String @id @default(cuid())
+  name String @unique
+  slug String @unique
+  category String
+  defaultUnit String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  aliases IngredientAlias[]
+  recipeIngredients RecipeIngredient[]
+  pantryItems PantryItem[]
+  products Product[]
+}
+model IngredientAlias {
+  id String @id @default(cuid())
+  ingredientId String
+  name String
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  @@unique([ingredientId, name])
+}
+model Recipe {
+  id String @id @default(cuid())
+  name String
+  description String @default("")
+  slug String @unique
+  category String
+  defaultServings Int @default(4)
+  prepMinutes Int @default(0)
+  cookMinutes Int @default(0)
+  restMinutes Int @default(0)
+  tags String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ingredients RecipeIngredient[]
+  components RecipeComponent[]
+  steps RecipeStep[]
+  mealSlots MealSlot[]
+  preparations Preparation[]
+}
+model RecipeComponent {
+  id String @id @default(cuid())
+  recipeId String
+  name String
+  order Int
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredients RecipeIngredient[]
+  steps RecipeStep[]
+  @@unique([recipeId, order])
+}
+model RecipeIngredient {
+  id String @id @default(cuid())
+  recipeId String
+  ingredientId String
+  componentId String?
+  quantity Float
+  unit String
+  optional Boolean @default(false)
+  note String @default("")
+  order Int @default(0)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+  component RecipeComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+}
+model RecipeStep {
+  id String @id @default(cuid())
+  recipeId String
+  componentId String?
+  order Int
+  actionType String?
+  description String
+  durationMinutes Int?
+  temperatureC Int?
+  equipment String?
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  component RecipeComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  @@unique([recipeId, order])
+}
+model MealSlot {
+  id String @id @default(cuid())
+  date DateTime
+  mealType String
+  recipeId String?
+  servings Int @default(4)
+  notes String @default("")
+  isEatingOut Boolean @default(false)
+  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  @@unique([date, mealType])
+}
+model ShoppingItemState {
+  id String @id @default(cuid())
+  weekKey String
+  ingredientId String
+  checked Boolean @default(false)
+  updatedAt DateTime @updatedAt
+  @@unique([weekKey, ingredientId])
+}
+model Preparation {
+  id String @id @default(cuid())
+  recipeId String
+  servings Int
+  plannedAt DateTime
+  status String @default("PLANNED")
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+}
+model PantryItem {
+  id String @id @default(cuid())
+  ingredientId String
+  quantity Float
+  unit String
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+}
+model Product {
+  id String @id @default(cuid())
+  name String
+  brand String?
+  quantity Float
+  unit String
+  ingredientId String
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+}
