@@ -1,0 +1,2 @@
+import DataManager from "@/components/DataManager";export const dynamic="force-dynamic";
+export default function DataSettings(){return <><section className="hero"><p className="eyebrow">Réglages</p><h1>Sauvegarde et restauration</h1><p className="muted">Gardez une copie de vos recettes et transférez-les vers une autre installation de Culinaire.</p></section><DataManager databaseEnabled={process.env.ALLOW_DATABASE_DOWNLOAD==="true"}/></>}
