@@ -20,7 +20,7 @@ export function expectedOutputCount(action:Action){return isSplit(action.type)?a
 export const EQUIPMENT:Record<string,string[]>={
  COUPER:["Couteau de cuisine","Planche à découper","Mandoline"],EMINCER:["Couteau de cuisine","Planche à découper","Mandoline"],HACHER:["Couteau de cuisine","Hachoir","Robot multifonction"],MIXER:["Mixeur plongeant","Blender","Robot multifonction"],MELANGER:["Saladier","Cuillère","Spatule"],FOUETTER:["Fouet","Batteur électrique","Robot pâtissier"],PETRIR:["Mains","Robot pâtissier"],CUIRE_POELE:["Poêle","Sauteuse","Wok"],CUIRE_FOUR:["Four","Plat à four","Plaque de cuisson"],BOUILLIR:["Casserole","Marmite"],MIJOTER:["Cocotte","Casserole","Sauteuse"],ASSEMBLER:["Saladier","Plat"],DRESSER:["Assiette","Plat de service"],SERVIR:["Plat de service","Assiette"],REPOSER:["Saladier","Récipient"],REFROIDIR:["Réfrigérateur","Grille"],AUTRE:[]
 };
-export function defaultEquipment(type:string){return EQUIPMENT[type]?.[0]??""}
+export function defaultEquipment(type:string){return ["COUPER","EMINCER"].includes(type)?"Couteau de cuisine, Planche à découper":EQUIPMENT[type]?.[0]??""}
 const round=(value:number)=>Math.round(value*1e6)/1e6;
 const pretty=(value:number)=>new Intl.NumberFormat("fr-FR",{maximumFractionDigits:2}).format(value);
 function allocate(origs:Record<string,number>, fraction:number){return Object.fromEntries(Object.entries(origs).map(([k,v])=>[k,round(v*fraction)]))}
