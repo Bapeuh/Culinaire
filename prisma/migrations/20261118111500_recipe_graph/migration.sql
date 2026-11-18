@@ -1,0 +1,1 @@
+ALTER TABLE "Recipe" ADD COLUMN "graphJson" TEXT NOT NULL DEFAULT '';

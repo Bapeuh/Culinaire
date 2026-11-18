@@ -3,7 +3,7 @@ import {z} from "zod";
 const isoDate=z.string().datetime();
 const ingredient=z.object({id:z.string(),name:z.string().min(1),slug:z.string().min(1),category:z.string(),defaultUnit:z.string(),createdAt:isoDate,updatedAt:isoDate});
 const alias=z.object({id:z.string(),ingredientId:z.string(),name:z.string().min(1)});
-const recipe=z.object({id:z.string(),name:z.string().min(1),description:z.string(),slug:z.string().min(1),category:z.string(),defaultServings:z.number().int().positive(),prepMinutes:z.number().int().nonnegative(),cookMinutes:z.number().int().nonnegative(),restMinutes:z.number().int().nonnegative(),tags:z.string(),createdAt:isoDate,updatedAt:isoDate});
+const recipe=z.object({id:z.string(),name:z.string().min(1),description:z.string(),slug:z.string().min(1),category:z.string(),defaultServings:z.number().int().positive(),prepMinutes:z.number().int().nonnegative(),cookMinutes:z.number().int().nonnegative(),restMinutes:z.number().int().nonnegative(),tags:z.string(),graphJson:z.string().optional().default(""),createdAt:isoDate,updatedAt:isoDate});
 const component=z.object({id:z.string(),recipeId:z.string(),name:z.string(),order:z.number().int()});
 const recipeIngredient=z.object({id:z.string(),recipeId:z.string(),ingredientId:z.string(),componentId:z.string().nullable(),quantity:z.number().nonnegative(),unit:z.string().min(1),optional:z.boolean(),note:z.string(),order:z.number().int()});
 const step=z.object({id:z.string(),recipeId:z.string(),componentId:z.string().nullable(),order:z.number().int(),actionType:z.string().nullable(),description:z.string(),durationMinutes:z.number().int().nullable(),temperatureC:z.number().int().nullable(),equipment:z.string().nullable()});
