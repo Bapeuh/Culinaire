@@ -1,7 +1,8 @@
 import {describe,it,expect} from "vitest";
-import {blankGraph,evaluateGraph,type RecipeGraph} from "./recipe-graph";
+import {blankGraph,defaultEquipment,evaluateGraph,type RecipeGraph} from "./recipe-graph";
 const source=(id:string,name:string,quantity:number)=>({id,ingredientId:id,name,quantity,unit:"g",optional:false});
 describe("Recipe action graph",()=>{
+ it("suggests the correct utensils for cutting and cooking",()=>{expect(defaultEquipment("COUPER")).toContain("Couteau");expect(defaultEquipment("COUPER")).toContain("Planche");expect(defaultEquipment("CUIRE_POELE")).toBe("Poêle")});
  it("creates independent results for each cut ingredient and combines them later",()=>{
   const g:RecipeGraph={version:1,sources:[source("onion","Oignon",100),source("tomato","Tomates",400)],actions:[
    {id:"cut",type:"COUPER",inputs:[{itemId:"onion",quantity:100},{itemId:"tomato",quantity:400}],outputs:[{id:"onion-cut",name:"Oignon coupé"},{id:"tomato-cut",name:"Tomates coupées"}],durationMinutes:5,temperatureC:null,details:"en dés"},
