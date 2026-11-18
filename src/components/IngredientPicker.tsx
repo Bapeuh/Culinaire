@@ -14,7 +14,7 @@ export default function IngredientPicker({ingredients,onCreated,onSelect,selecte
  const [error,setError]=useState("");
  const [pending,start]=useTransition();
  const visible=useMemo(()=>ingredients.filter(i=>i.name.toLocaleLowerCase("fr").includes(query.toLocaleLowerCase("fr"))).slice(0,30),[ingredients,query]);
- function create(){start(async()=>{const result=await createIngredient({name,category,defaultUnit:unit});if(result.ok){onCreated(result.ingredient);onSelect?.(result.ingredient.id);setAdding(false);setName("");setError("");setQuery("")}else setError(result.error)})}
+ function create(){start(async()=>{const result=await createIngredient({name,category,defaultUnit:unit});if(result.ok){onCreated(result.ingredient);setAdding(false);setName("");setError("");setQuery("")}else setError(result.error)})}
  return <div className="ingredient-finder">
   <div className="finder-top"><input type="search" aria-label="Chercher un aliment" placeholder="🔎 Rechercher un aliment…" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" className="btn alt" onClick={()=>{setAdding(!adding);setName(query);setError("")}}>+ Créer un aliment</button></div>
   {onSelect&&<div className="finder-list" role="listbox" aria-label="Choisir un aliment">{visible.map(i=><button key={i.id} role="option" aria-selected={selectedId===i.id} className={selectedId===i.id?"finder-option active":"finder-option"} onClick={()=>onSelect(i.id)} type="button"><span>{i.name}</span><small>{i.category}</small></button>)}{visible.length===0&&<p className="muted">Aucun résultat. Créez cet aliment ci-dessus.</p>}</div>}
