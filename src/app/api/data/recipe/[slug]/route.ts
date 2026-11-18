@@ -1,0 +1,2 @@
+import {createRecipeExport} from "@/services/backup";
+export async function GET(_:Request,{params}:{params:Promise<{slug:string}>}){try{const {slug}=await params,data=await createRecipeExport(slug);return new Response(JSON.stringify(data,null,2),{headers:{"Content-Type":"application/json; charset=utf-8","Content-Disposition":`attachment; filename="culinaire-recette-${slug}.json"`}})}catch{return Response.json({error:"Recette introuvable."},{status:404})}}

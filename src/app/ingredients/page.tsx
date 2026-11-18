@@ -1,1 +1,8 @@
-import {prisma} from "@/lib/prisma";export const dynamic="force-dynamic";export default async function Ingredients(){const ingredients=await prisma.ingredient.findMany({include:{_count:{select:{recipeIngredients:true}}},orderBy:[{category:"asc"},{name:"asc"}]});const categories=[...new Set(ingredients.map(x=>x.category))];return <><section className="hero"><p className="eyebrow">Référentiel</p><h1>Ingrédients</h1><p className="muted">Les recettes utilisent ces ingrédients canoniques, distincts des produits commerciaux.</p></section>{categories.map(c=><section key={c}><h2>{c}</h2><div className="grid">{ingredients.filter(x=>x.category===c).map(x=><article className="card" key={x.id}><h3>{x.name}</h3><p className="muted">Unité : {x.defaultUnit} · {x._count.recipeIngredients} recette(s)</p></article>)}</div></section>)}</>}
+import {prisma} from "@/lib/prisma";
+import IngredientLibrary from "@/components/IngredientLibrary";
+export const dynamic="force-dynamic";
+export default async function Ingredients(){
+ const ingredients=await prisma.ingredient.findMany({include:{_count:{select:{recipeIngredients:true}}},orderBy:[{category:"asc"},{name:"asc"}]});
+ const initial=ingredients.map(i=>({id:i.id,name:i.name,category:i.category,defaultUnit:i.defaultUnit,recipeCount:i._count.recipeIngredients}));
+ return <><section className="hero"><p className="eyebrow">Votre garde-manger</p><h1>🥑 Bibliothèque d’aliments</h1><p className="muted">Retrouvez vos ingrédients, explorez les rayons et ajoutez facilement de nouveaux aliments pour vos recettes.</p></section><IngredientLibrary initial={initial}/></>;
+}

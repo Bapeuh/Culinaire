@@ -1,0 +1,2 @@
+import {importRecipe} from "@/services/backup";import {ZodError} from "zod";
+export async function POST(request:Request){try{const body=await request.json();const result=await importRecipe(body.data,body.mode==="replace"?"replace":"copy");return Response.json({ok:true,...result})}catch(error){return Response.json({error:error instanceof ZodError?"Ce fichier de recette est invalide.":"L’import de la recette a échoué."},{status:400})}}

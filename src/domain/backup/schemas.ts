@@ -1,0 +1,22 @@
+import {z} from "zod";
+
+const isoDate=z.string().datetime();
+const ingredient=z.object({id:z.string(),name:z.string().min(1),slug:z.string().min(1),category:z.string(),defaultUnit:z.string(),createdAt:isoDate,updatedAt:isoDate});
+const alias=z.object({id:z.string(),ingredientId:z.string(),name:z.string().min(1)});
+const recipe=z.object({id:z.string(),name:z.string().min(1),description:z.string(),slug:z.string().min(1),category:z.string(),defaultServings:z.number().int().positive(),prepMinutes:z.number().int().nonnegative(),cookMinutes:z.number().int().nonnegative(),restMinutes:z.number().int().nonnegative(),tags:z.string(),createdAt:isoDate,updatedAt:isoDate});
+const component=z.object({id:z.string(),recipeId:z.string(),name:z.string(),order:z.number().int()});
+const recipeIngredient=z.object({id:z.string(),recipeId:z.string(),ingredientId:z.string(),componentId:z.string().nullable(),quantity:z.number().nonnegative(),unit:z.string().min(1),optional:z.boolean(),note:z.string(),order:z.number().int()});
+const step=z.object({id:z.string(),recipeId:z.string(),componentId:z.string().nullable(),order:z.number().int(),actionType:z.string().nullable(),description:z.string(),durationMinutes:z.number().int().nullable(),temperatureC:z.number().int().nullable(),equipment:z.string().nullable()});
+const meal=z.object({id:z.string(),date:isoDate,mealType:z.string(),recipeId:z.string().nullable(),servings:z.number().int().positive(),notes:z.string(),isEatingOut:z.boolean()});
+const state=z.object({id:z.string(),weekKey:z.string(),ingredientId:z.string(),checked:z.boolean(),updatedAt:isoDate});
+const preparation=z.object({id:z.string(),recipeId:z.string(),servings:z.number().int().positive(),plannedAt:isoDate,status:z.string()});
+const pantry=z.object({id:z.string(),ingredientId:z.string(),quantity:z.number().nonnegative(),unit:z.string()});
+const product=z.object({id:z.string(),name:z.string(),brand:z.string().nullable(),quantity:z.number().nonnegative(),unit:z.string(),ingredientId:z.string()});
+
+export const backupSchema=z.object({format:z.literal("culinaire-backup"),schemaVersion:z.literal(1),exportedAt:isoDate,applicationVersion:z.string(),data:z.object({ingredients:z.array(ingredient),ingredientAliases:z.array(alias),recipes:z.array(recipe),recipeComponents:z.array(component),recipeIngredients:z.array(recipeIngredient),recipeSteps:z.array(step),mealSlots:z.array(meal),shoppingItemStates:z.array(state),preparations:z.array(preparation),pantryItems:z.array(pantry),products:z.array(product)})});
+export type CulinaireBackup=z.infer<typeof backupSchema>;
+
+export const recipeExportSchema=z.object({format:z.literal("culinaire-recipe"),schemaVersion:z.literal(1),exportedAt:isoDate,recipe:recipe.omit({id:true,createdAt:true,updatedAt:true}).extend({components:z.array(component.omit({id:true,recipeId:true}).extend({key:z.string()})),ingredients:z.array(recipeIngredient.omit({id:true,recipeId:true,ingredientId:true,componentId:true}).extend({ingredient:ingredient.omit({id:true,createdAt:true,updatedAt:true}),componentKey:z.string().nullable()})),steps:z.array(step.omit({id:true,recipeId:true,componentId:true}).extend({componentKey:z.string().nullable()}))})});
+export type CulinaireRecipeExport=z.infer<typeof recipeExportSchema>;
+
+export function validateRelations(backup:CulinaireBackup){const ingredientIds=new Set(backup.data.ingredients.map(x=>x.id)),recipeIds=new Set(backup.data.recipes.map(x=>x.id)),componentIds=new Set(backup.data.recipeComponents.map(x=>x.id));const problems:string[]=[];for(const x of backup.data.ingredientAliases)if(!ingredientIds.has(x.ingredientId))problems.push(`L’alias ${x.name} référence un ingrédient inexistant.`);for(const x of backup.data.recipeComponents)if(!recipeIds.has(x.recipeId))problems.push(`Le composant ${x.name} référence une recette inexistante.`);for(const x of backup.data.recipeIngredients){if(!recipeIds.has(x.recipeId))problems.push("Un ingrédient de recette référence une recette inexistante.");if(!ingredientIds.has(x.ingredientId))problems.push("Une recette référence un ingrédient inexistant.");if(x.componentId&&!componentIds.has(x.componentId))problems.push("Une recette référence un composant inexistant.")}for(const x of backup.data.recipeSteps)if(!recipeIds.has(x.recipeId)||(x.componentId&&!componentIds.has(x.componentId)))problems.push("Une étape contient une relation invalide.");if(problems.length)throw new Error(problems[0]);}
