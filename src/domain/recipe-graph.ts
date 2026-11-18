@@ -1,10 +1,10 @@
 export type Source = {id:string;ingredientId:string;name:string;quantity:number;unit:string;optional:boolean};
 export type Input = {itemId:string;quantity:number};
-export type Action = {id:string;type:string;inputs:Input[];outputs:{id:string;name:string}[];durationMinutes:number|null;temperatureC:number|null;details:string};
+export type Action = {id:string;type:string;inputs:Input[];outputs:{id:string;name:string}[];durationMinutes:number|null;temperatureC:number|null;details:string;equipment?:string};
 export type Exit = {itemId:string;kind:"served"|"discarded";quantity:number};
 export type RecipeGraph = {version:1;sources:Source[];actions:Action[];exits:Exit[]};
 export type Item = {id:string;name:string;quantity:number;remaining:number;unit:string;origins:Record<string,number>;createdBy:string|null};
-export type GraphReport = {items:Item[];issues:string[];warnings:string[];steps:{actionType:string;description:string;durationMinutes:number|null;temperatureC:number|null}[];served:string[]};
+export type GraphReport = {items:Item[];issues:string[];warnings:string[];steps:{actionType:string;description:string;durationMinutes:number|null;temperatureC:number|null;equipment:string|null}[];served:string[]};
 export const ACTIONS = [
  ["COUPER","🔪 Couper","split"],["EMINCER","🔪 Émincer","split"],["HACHER","🔪 Hacher","split"],
  ["MIXER","🌀 Mixer","merge"],["MELANGER","🥣 Mélanger","merge"],["FOUETTER","🥄 Fouetter","merge"],
@@ -17,6 +17,10 @@ export const ACTIONS = [
 ] as const;
 export function isSplit(type:string){return ACTIONS.find(a=>a[0]===type)?.[2]==="split"}
 export function expectedOutputCount(action:Action){return isSplit(action.type)?action.inputs.length:action.inputs.length?1:0}
+export const EQUIPMENT:Record<string,string[]>={
+ COUPER:["Couteau de cuisine","Planche à découper","Mandoline"],EMINCER:["Couteau de cuisine","Planche à découper","Mandoline"],HACHER:["Couteau de cuisine","Hachoir","Robot multifonction"],MIXER:["Mixeur plongeant","Blender","Robot multifonction"],MELANGER:["Saladier","Cuillère","Spatule"],FOUETTER:["Fouet","Batteur électrique","Robot pâtissier"],PETRIR:["Mains","Robot pâtissier"],CUIRE_POELE:["Poêle","Sauteuse","Wok"],CUIRE_FOUR:["Four","Plat à four","Plaque de cuisson"],BOUILLIR:["Casserole","Marmite"],MIJOTER:["Cocotte","Casserole","Sauteuse"],ASSEMBLER:["Saladier","Plat"],DRESSER:["Assiette","Plat de service"],SERVIR:["Plat de service","Assiette"],REPOSER:["Saladier","Récipient"],REFROIDIR:["Réfrigérateur","Grille"],AUTRE:[]
+};
+export function defaultEquipment(type:string){return EQUIPMENT[type]?.[0]??""}
 const round=(value:number)=>Math.round(value*1e6)/1e6;
 const pretty=(value:number)=>new Intl.NumberFormat("fr-FR",{maximumFractionDigits:2}).format(value);
 function allocate(origs:Record<string,number>, fraction:number){return Object.fromEntries(Object.entries(origs).map(([k,v])=>[k,round(v*fraction)]))}
@@ -26,8 +30,9 @@ export function describeAction(action:Action,inputs:Item[],outputs:Item[]):strin
  const object=inputs.map((x,i)=>`${pretty(action.inputs[i].quantity)} ${x.unit} de ${x.name}`).join(", ");
  const time=action.durationMinutes?` pendant ${action.durationMinutes} min`:"";
  const temp=action.temperatureC?` à ${action.temperatureC} °C`:"";
+ const equipment=action.equipment?` avec ${action.equipment}`:"";
  const result=outputs.length?` → ${outputs.map(x=>x.name).join(" et ")}`:"";
- return `${name} ${object}${time}${temp}.${result}${action.details?` ${action.details}`:""}`;
+ return `${name} ${object}${equipment}${time}${temp}.${result}${action.details?` ${action.details}`:""}`;
 }
 export function evaluateGraph(graph:RecipeGraph):GraphReport{
  const issues:string[]=[],warnings:string[]=[],steps:GraphReport["steps"]=[],items=new Map<string,Item>();
@@ -69,7 +74,7 @@ export function evaluateGraph(graph:RecipeGraph):GraphReport{
    const result={id:out.id,name:out.name,quantity:qty,remaining:qty,unit,origins,createdBy:action.id};
    items.set(out.id,result);created.push(result);
   }
-  steps.push({actionType:action.type,description:describeAction(action,selected,created),durationMinutes:action.durationMinutes,temperatureC:action.temperatureC});
+  steps.push({actionType:action.type,description:describeAction(action,selected,created),durationMinutes:action.durationMinutes,temperatureC:action.temperatureC,equipment:action.equipment??null});
  }
  const served:string[]=[];const retired=new Map<string,number>();
  const servedSources=new Set<string>();
