@@ -36,6 +36,7 @@ model Recipe {
   cookMinutes Int @default(0)
   restMinutes Int @default(0)
   tags String @default("")
+  graphJson String @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ingredients RecipeIngredient[]
