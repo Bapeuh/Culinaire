@@ -28,7 +28,11 @@ export function inSeason(name:string, month:number):boolean|null {
 }
 export function resolveVariation(variation:RecipeVariation, servings:number, baseServings:number, choices:Record<string,Effort>) {
   if(servings<=0 || baseServings<=0) throw new Error("Les portions doivent être positives");
-  const selected=variation.components.filter(c=>c.effort===(choices[c.name]??c.effort));
+  const names=[...new Set(variation.components.map(c=>c.name))];
+  const selected=names.map(name=>{
+    const options=variation.components.filter(c=>c.name===name);
+    return options.find(c=>c.effort===(choices[name]??"maison"))??options.find(c=>c.effort==="maison")??options[0];
+  });
   const lines=selected.flatMap(c=>c.ingredients.map(i=>({...i,quantity:i.quantity*servings/baseServings})));
   const merged=new Map<string,IngredientUse>();
   for(const line of lines) {
