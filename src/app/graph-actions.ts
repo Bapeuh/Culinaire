@@ -7,7 +7,7 @@ import {z} from "zod";
 
 const Source=z.object({id:z.string().min(1),ingredientId:z.string().min(1),name:z.string().min(1),quantity:z.number().positive().finite(),unit:z.string().min(1),optional:z.boolean()});
 const Entry=z.object({itemId:z.string().min(1),quantity:z.number().positive().finite()});
-const Action=z.object({id:z.string().min(1),type:z.string().min(1),inputs:z.array(Entry),outputs:z.array(z.object({id:z.string().min(1),name:z.string().min(1)})),durationMinutes:z.number().int().nonnegative().nullable(),temperatureC:z.number().int().nonnegative().nullable(),details:z.string()});
+const Action=z.object({id:z.string().min(1),type:z.string().min(1),inputs:z.array(Entry),outputs:z.array(z.object({id:z.string().min(1),name:z.string().min(1)})),durationMinutes:z.number().int().nonnegative().nullable(),temperatureC:z.number().int().nonnegative().nullable(),details:z.string(),equipment:z.string().max(120).optional()});
 const Graph=z.object({version:z.literal(1),sources:z.array(Source).max(200),actions:z.array(Action).max(200),exits:z.array(z.object({itemId:z.string().min(1),kind:z.enum(["served","discarded"]),quantity:z.number().positive().finite()})).max(300)});
 const Meta=z.object({id:z.string(),name:z.string().trim().min(2).max(150),description:z.string().max(2000),category:z.string().min(1).max(60),defaultServings:z.number().int().positive().max(500),prepMinutes:z.number().int().nonnegative(),cookMinutes:z.number().int().nonnegative(),restMinutes:z.number().int().nonnegative(),tags:z.string().max(1000)});
 const slugify=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
